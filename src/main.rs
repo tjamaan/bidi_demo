@@ -75,7 +75,7 @@ struct Icons {
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut ui_assets: ResMut<UiAssets>) {
     commands.spawn(Camera2dBundle::default());
-    ui_assets.font = asset_server.load("fonts/Amiri-Regular.ttf");
+    ui_assets.font = asset_server.load("fonts/NotoKufiArabic-Regular.ttf");
     ui_assets.typographies.logo_text = TextStyle {
         font: ui_assets.font.clone(),
         color: Color::BLACK,
