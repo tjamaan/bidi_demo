@@ -81,13 +81,8 @@ pub fn logo(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
                 ..default()
             });
             builder.spawn((
-                TextBundle {
-                    text: Text::from_section(
-                        "bevymail_logo_text",
-                        ui_assets.typographies.logo_text.clone(),
-                    ),
-                    ..default()
-                },
+                Text::new("bevymail_logo_text"),
+                ui_assets.typographies.logo_text.clone(),
                 LocalizedText("bevymail_logo_text"),
             ));
         });
@@ -103,10 +98,7 @@ pub fn language_switcher(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
             SwitchLanguageButton,
         ))
         .with_children(|builder| {
-            builder.spawn(TextBundle::from_section(
-                "E/ع",
-                ui_assets.typographies.user_text.clone(),
-            ));
+            builder.spawn((Text::new("E/ع"), ui_assets.typographies.user_text.clone()));
         });
 }
 pub fn user(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
@@ -132,10 +124,19 @@ pub fn user(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
                 image: UiImage::new(ui_assets.images.avatars.bear.clone()),
                 ..default()
             });
-            builder.spawn(TextBundle::from_section(
-                "$USER",
-                ui_assets.typographies.user_text.clone(),
-            ));
+            builder
+                .spawn((Text::default(), ui_assets.typographies.user_text.clone()))
+                .with_children(|builder| {
+                    builder.spawn((
+                        TextSpan::new("good_morning"),
+                        ui_assets.typographies.user_text.clone(),
+                        LocalizedText("good_morning"),
+                    ));
+                    builder.spawn((
+                        TextSpan::new("$USER"),
+                        ui_assets.typographies.user_text.clone(),
+                    ));
+                });
         });
 }
 
@@ -177,7 +178,8 @@ pub fn left_navigation(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
         })
         .with_children(|builder| {
             builder.spawn((
-                TextBundle::from_section("folders", ui_assets.typographies.folder_text.clone()),
+                Text::new("folders"),
+                ui_assets.typographies.folder_text.clone(),
                 LocalizedText("folders"),
             ));
             builder
@@ -246,7 +248,8 @@ pub fn folder_item(
                 LocalizedImageFlip,
             ));
             builder.spawn((
-                TextBundle::from_section(label, ui_assets.typographies.folder_text.clone()),
+                Text::new(label),
+                ui_assets.typographies.folder_text.clone(),
                 LocalizedText(label),
             ));
         });
@@ -328,18 +331,15 @@ pub fn mail_list(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
                         .into_iter()
                         .enumerate()
                     {
-                        builder.spawn(TextBundle {
-                            style: Style {
+                        builder.spawn((
+                            Style {
                                 grid_column: GridPlacement::start(1),
                                 grid_row: GridPlacement::start(row as i16 + 1),
                                 ..default()
                             },
-                            text: Text::from_section(
-                                sender,
-                                ui_assets.typographies.mail_subject_text.clone(),
-                            ),
-                            ..default()
-                        });
+                            Text::new(sender),
+                            ui_assets.typographies.mail_subject_text.clone(),
+                        ));
                     }
                     for (row, subject) in [
                         "Your PR #513 has been merged",
@@ -350,18 +350,15 @@ pub fn mail_list(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
                     .into_iter()
                     .enumerate()
                     {
-                        builder.spawn(TextBundle {
-                            style: Style {
+                        builder.spawn((
+                            Style {
                                 grid_column: GridPlacement::start(2),
                                 grid_row: GridPlacement::start(row as i16 + 1),
                                 ..default()
                             },
-                            text: Text::from_section(
-                                subject,
-                                ui_assets.typographies.mail_subject_text.clone(),
-                            ),
-                            ..default()
-                        });
+                            Text::new(subject),
+                            ui_assets.typographies.mail_subject_text.clone(),
+                        ));
                     }
                 });
         });
@@ -398,8 +395,8 @@ Bevymail team";
             },
         ))
         .with_children(|builder| {
-            builder.spawn(TextBundle::from_section(
-                message,
+            builder.spawn((
+                Text::new(message),
                 ui_assets.typographies.folder_text.clone(),
             ));
         });

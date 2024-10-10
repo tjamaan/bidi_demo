@@ -6,6 +6,8 @@ fn main() {
     let localization_database = HashMap::from([
         (("en", "bevymail_logo_text"), "Bevy mail!"),
         (("ar", "bevymail_logo_text"), "بريد بَڤِي!"),
+        (("en", "good_morning"), "Good morning "),
+        (("ar", "good_morning"), "صباح الخير "),
         (("en", "folders"), "Folders"),
         (("ar", "folders"), "مجلدات"),
         (("en", "inbox"), "Inbox"),
@@ -74,27 +76,31 @@ struct Icons {
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut ui_assets: ResMut<UiAssets>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
     ui_assets.font = asset_server.load("fonts/NotoKufiArabic-Regular.ttf");
     ui_assets.typographies.logo_text = TextStyle {
         font: ui_assets.font.clone(),
-        color: Color::BLACK,
+        color: Color::linear_rgb(0., 0., 0.),
         font_size: 36.,
+        font_smoothing: bevy::text::FontSmoothing::AntiAliased,
     };
     ui_assets.typographies.user_text = TextStyle {
         font: ui_assets.font.clone(),
         color: Color::BLACK,
         font_size: 24.,
+        font_smoothing: bevy::text::FontSmoothing::AntiAliased,
     };
     ui_assets.typographies.folder_text = TextStyle {
         font: ui_assets.font.clone(),
         color: Color::BLACK,
         font_size: 16.,
+        font_smoothing: bevy::text::FontSmoothing::AntiAliased,
     };
     ui_assets.typographies.mail_subject_text = TextStyle {
         font: ui_assets.font.clone(),
         color: Color::BLACK,
         font_size: 16.,
+        font_smoothing: bevy::text::FontSmoothing::AntiAliased,
     };
     ui_assets.images.logo = asset_server.load("images/logo.png");
     ui_assets.images.avatars.bear = asset_server.load("images/avatars/bear.png");
@@ -142,11 +148,15 @@ fn change_language_system(
     mut text_query: Query<
         (
             Option<&LocalizedText>,
-            Option<&LocalizedJustifyText>,
-            &mut Text,
+            Option<&mut Text>,
+            Option<&mut TextSpan>,
         ),
-        Or<(With<LocalizedText>, With<LocalizedJustifyText>)>,
+        (
+            Or<(With<LocalizedText>, With<LocalizedJustifyText>)>,
+            Or<(With<Text>, With<TextSpan>)>,
+        ),
     >,
+    mut text_layout_query: Query<(&mut TextLayout, &LocalizedJustifyText)>,
     mut image_query: Query<&mut UiImage, With<LocalizedImageFlip>>,
     mut style_query: Query<(
         Option<&LocalizedFlexRowDirection>,
@@ -160,31 +170,32 @@ fn change_language_system(
         _ => panic!("Unknown language"),
     };
 
-    for (localized_text, localized_justify_text, mut text) in &mut text_query {
+    for (localized_text, text, text_span) in &mut text_query {
         if let Some(localized_text) = localized_text {
             if let Some(new_text) = localization_database
                 .0
                 .get(&(current_language.0, localized_text.0))
             {
-                text.sections[0].value = new_text.to_string();
+                text.map(|mut t| t.0 = new_text.to_string());
+                text_span.map(|mut t| t.0 = new_text.to_string());
             }
         }
+    }
 
-        if let Some(localized_justify_text) = localized_justify_text {
-            text.justify = match localized_justify_text {
-                LocalizedJustifyText::Start => {
-                    if is_left_to_right {
-                        JustifyText::Left
-                    } else {
-                        JustifyText::Right
-                    }
+    for (mut text_layout, localized_justify_text) in &mut text_layout_query {
+        text_layout.justify = match localized_justify_text {
+            LocalizedJustifyText::Start => {
+                if is_left_to_right {
+                    JustifyText::Left
+                } else {
+                    JustifyText::Right
                 }
-                LocalizedJustifyText::End => {
-                    if !is_left_to_right {
-                        JustifyText::Left
-                    } else {
-                        JustifyText::Right
-                    }
+            }
+            LocalizedJustifyText::End => {
+                if !is_left_to_right {
+                    JustifyText::Left
+                } else {
+                    JustifyText::Right
                 }
             }
         }
@@ -281,7 +292,7 @@ fn spawn_layout(mut commands: Commands, ui_assets: Res<UiAssets>) {
 fn add_layout_localization(
     mut commands: Commands,
     style_query: Query<(Entity, &Style)>,
-    text_query: Query<(Entity, &Text)>,
+    text_layout_query: Query<(Entity, &TextLayout)>,
 ) {
     for (entity, style) in &style_query {
         match (style.display, style.flex_direction, style.align_items) {
@@ -307,8 +318,8 @@ fn add_layout_localization(
         }
     }
 
-    for (entity, text) in &text_query {
-        match text.justify {
+    for (entity, text_layout) in &text_layout_query {
+        match text_layout.justify {
             JustifyText::Left => {
                 commands.entity(entity).insert(LocalizedJustifyText::Start);
             }
