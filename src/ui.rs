@@ -327,7 +327,7 @@ pub fn mail_list(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
                     },
                 ))
                 .with_children(|builder| {
-                    for (row, sender) in ["Gitpup", "Amashop", "Legitauth", "Bevymail"]
+                    for (row, sender) in ["Gitpup", "Amashop", "Legitauth", "Bevymail", "Myself"]
                         .into_iter()
                         .enumerate()
                     {
@@ -346,6 +346,7 @@ pub fn mail_list(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
                         "Order receipt #5164134",
                         "Here is your OTP",
                         "Welcome to Bevymail!",
+                        "Bi-di demo text",
                     ]
                     .into_iter()
                     .enumerate()
@@ -365,13 +366,18 @@ pub fn mail_list(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
 }
 
 pub fn mail_message(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
-    let message = "Welcome to Bevymail, $USER!
+    //     let message = "Welcome to Bevymail, $USER!
 
-Enjoy the fastest and easiest email experience ever!
-Check out the user guide for the latest tips and tricks.
+    // Enjoy the fastest and easiest email experience ever!
+    // Check out the user guide for the latest tips and tricks.
 
-Best regards,
-Bevymail team";
+    // Best regards,
+    // Bevymail team";
+    let message = "Here is some bi-directional text:
+One Two Three, اربعة خمسة ستة، seven eight (nine), عشرة أحد عشر (إثنا عشر)، thirteen fourteen fifteen ع.
+
+وهنا المزيد من النص الثنائي الإتجاه:
+واحد إثنان ثلاثة، four five six, سبعة ثمانية (تسعة)، ten eleven (twelve), ثلاثة عشر أربعة عشر خمسة عشر E.";
 
     builder
         .spawn((
