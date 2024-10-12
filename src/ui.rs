@@ -374,10 +374,10 @@ pub fn mail_message(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
     // Best regards,
     // Bevymail team";
     let message = "Here is some bi-directional text:
-One Two Three, اربعة خمسة ستة، seven eight (nine), عشرة أحد عشر (إثنا عشر)، thirteen fourteen fifteen ع.
+One Two Three, اربعة خمسة ستة، seven eight (nine), عشرة أحد عشر (إثنا عشر)، thirteen fourteen fifteen عربي.
 
 وهنا المزيد من النص الثنائي الإتجاه:
-واحد إثنان ثلاثة، four five six, سبعة ثمانية (تسعة)، ten eleven (twelve), ثلاثة عشر أربعة عشر خمسة عشر E.";
+واحد إثنان ثلاثة، four five six, سبعة ثمانية (تسعة)، ten eleven (twelve), ثلاثة عشر أربعة عشر خمسة عشر English.";
 
     builder
         .spawn((
@@ -401,9 +401,31 @@ One Two Three, اربعة خمسة ستة، seven eight (nine), عشرة أحد 
             },
         ))
         .with_children(|builder| {
-            builder.spawn((
-                Text::new(message),
-                ui_assets.typographies.folder_text.clone(),
-            ));
+            builder
+                .spawn((
+                    Text::default(),
+                    ui_assets.typographies.folder_text.clone(),
+                    BackgroundColor(Color::linear_rgb(0.1, 0.1, 0.1)),
+                ))
+                .with_children(|builder| {
+                    for (i, part) in message
+                        .split_inclusive(|c: char| c.is_whitespace())
+                        .enumerate()
+                    {
+                        builder.spawn((
+                            TextSpan::new(part.to_string()),
+                            TextStyle {
+                                color: Color::hsl(i as f32 * 30.0, 0.8, 0.7),
+                                font_size: match i % 3 {
+                                    0 => 16.,
+                                    1 => 12.,
+                                    2 => 20.,
+                                    _ => unreachable!(),
+                                },
+                                ..ui_assets.typographies.folder_text.clone()
+                            },
+                        ));
+                    }
+                });
         });
 }
