@@ -301,6 +301,7 @@ pub fn mail_list(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
                 },
                 border_color: BorderColor(Color::BLACK),
                 border_radius: BorderRadius::all(Val::Px(2.)),
+                background_color: BackgroundColor(Color::hsl(0.0, 0.0, 0.7)),
                 ..default()
             },
         ))
@@ -311,6 +312,7 @@ pub fn mail_list(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
                     Name::new("Mail list"),
                     NodeBundle {
                         style: Style {
+                            width: Val::Percent(100.),
                             display: Display::Grid,
                             grid_template_rows: [RepeatedGridTrack::flex(4, 1.)].to_vec(),
                             grid_template_columns: [GridTrack::auto(), GridTrack::flex(1.)]
@@ -323,6 +325,7 @@ pub fn mail_list(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
                             padding: UiRect::all(Val::Px(5.)),
                             ..default()
                         },
+                        background_color: BackgroundColor(Color::hsl(0.0, 0.0, 0.8)),
                         ..default()
                     },
                 ))

@@ -115,6 +115,12 @@ struct LocalizationDatabase(HashMap<(&'static str, &'static str), &'static str>)
 #[derive(Resource)]
 struct CurrentLanguage(&'static str);
 
+#[derive(Resource)]
+enum CurrentDirection {
+    Ltr,
+    Rtl,
+}
+
 #[derive(Component)]
 struct LocalizedText(&'static str);
 
@@ -156,13 +162,14 @@ fn change_language_system(
             Or<(With<Text>, With<TextSpan>)>,
         ),
     >,
-    mut text_layout_query: Query<(&mut TextLayout, &LocalizedJustifyText)>,
     mut image_query: Query<&mut UiImage, With<LocalizedImageFlip>>,
-    mut style_query: Query<(
-        Option<&LocalizedFlexRowDirection>,
-        Option<&LocalizedAlignItems>,
-        &mut Style,
-    )>,
+    mut direction_query: Query<&mut Style>,
+    // mut text_layout_query: Query<(&mut TextLayout, &LocalizedJustifyText)>,
+    // mut style_query: Query<(
+    //     Option<&LocalizedFlexRowDirection>,
+    //     Option<&LocalizedAlignItems>,
+    //     &mut Style,
+    // )>,
 ) {
     let is_left_to_right = match current_language.0 {
         "ar" => false,
@@ -182,68 +189,76 @@ fn change_language_system(
         }
     }
 
-    for (mut text_layout, localized_justify_text) in &mut text_layout_query {
-        text_layout.justify = match localized_justify_text {
-            LocalizedJustifyText::Start => {
-                if is_left_to_right {
-                    JustifyText::Left
-                } else {
-                    JustifyText::Right
-                }
-            }
-            LocalizedJustifyText::End => {
-                if !is_left_to_right {
-                    JustifyText::Left
-                } else {
-                    JustifyText::Right
-                }
-            }
-        }
-    }
-
     for mut ui_image in &mut image_query {
         ui_image.flip_x = !is_left_to_right;
     }
 
-    for (localized_flex_row_direction, localized_align_items, mut style) in &mut style_query {
-        if let Some(localized_flex_row_direction) = localized_flex_row_direction {
-            style.flex_direction = match localized_flex_row_direction {
-                LocalizedFlexRowDirection::Forward => {
-                    if is_left_to_right {
-                        FlexDirection::Row
-                    } else {
-                        FlexDirection::RowReverse
-                    }
-                }
-                LocalizedFlexRowDirection::Backward => {
-                    if !is_left_to_right {
-                        FlexDirection::Row
-                    } else {
-                        FlexDirection::RowReverse
-                    }
-                }
-            }
-        }
-
-        if let Some(localized_align_items) = localized_align_items {
-            style.align_items = match localized_align_items {
-                LocalizedAlignItems::Forward => {
-                    if is_left_to_right {
-                        AlignItems::Start
-                    } else {
-                        AlignItems::End
-                    }
-                }
-                LocalizedAlignItems::Backward => {
-                    if !is_left_to_right {
-                        AlignItems::Start
-                    } else {
-                        AlignItems::End
-                    }
-                }
-            }
-        }
+    for mut style in &mut direction_query {
+        style.direction = if is_left_to_right {
+            Direction::Ltr
+        } else {
+            Direction::Rtl
+        };
     }
+
+    // for (mut text_layout, localized_justify_text) in &mut text_layout_query {
+    //     text_layout.justify = match localized_justify_text {
+    //         LocalizedJustifyText::Start => {
+    //             if is_left_to_right {
+    //                 JustifyText::Left
+    //             } else {
+    //                 JustifyText::Right
+    //             }
+    //         }
+    //         LocalizedJustifyText::End => {
+    //             if !is_left_to_right {
+    //                 JustifyText::Left
+    //             } else {
+    //                 JustifyText::Right
+    //             }
+    //         }
+    //     }
+    // }
+
+    // for (localized_flex_row_direction, localized_align_items, mut style) in &mut style_query {
+    //     if let Some(localized_flex_row_direction) = localized_flex_row_direction {
+    //         style.flex_direction = match localized_flex_row_direction {
+    //             LocalizedFlexRowDirection::Forward => {
+    //                 if is_left_to_right {
+    //                     FlexDirection::Row
+    //                 } else {
+    //                     FlexDirection::RowReverse
+    //                 }
+    //             }
+    //             LocalizedFlexRowDirection::Backward => {
+    //                 if !is_left_to_right {
+    //                     FlexDirection::Row
+    //                 } else {
+    //                     FlexDirection::RowReverse
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     if let Some(localized_align_items) = localized_align_items {
+    //         style.align_items = match localized_align_items {
+    //             LocalizedAlignItems::Forward => {
+    //                 if is_left_to_right {
+    //                     AlignItems::Start
+    //                 } else {
+    //                     AlignItems::End
+    //                 }
+    //             }
+    //             LocalizedAlignItems::Backward => {
+    //                 if !is_left_to_right {
+    //                     AlignItems::Start
+    //                 } else {
+    //                     AlignItems::End
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 fn switch_language_button_system(
