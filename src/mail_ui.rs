@@ -168,12 +168,13 @@ pub fn left_navigation(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
         .spawn(NodeBundle {
             style: Style {
                 flex_direction: FlexDirection::Column,
-                align_items: AlignItems::Start,
+                align_items: AlignItems::FlexStart,
                 align_content: AlignContent::Stretch,
                 justify_content: JustifyContent::FlexStart,
                 padding: UiRect::horizontal(Val::Px(20.)),
                 ..default()
             },
+            background_color: BackgroundColor(Color::hsl(30., 1., 0.5)),
             ..default()
         })
         .with_children(|builder| {
@@ -181,6 +182,7 @@ pub fn left_navigation(builder: &mut ChildBuilder, ui_assets: &UiAssets) {
                 Text::new("folders"),
                 ui_assets.typographies.folder_text.clone(),
                 LocalizedText("folders"),
+                BackgroundColor(Color::hsl(0., 1., 0.5)),
             ));
             builder
                 .spawn(NodeBundle {

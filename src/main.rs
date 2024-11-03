@@ -1,4 +1,5 @@
-mod ui;
+mod mail_ui;
+mod test_ui;
 
 use bevy::{prelude::*, utils::HashMap};
 
@@ -23,14 +24,7 @@ fn main() {
         .insert_resource(UiAssets::default())
         .insert_resource(LocalizationDatabase(localization_database))
         .insert_resource(CurrentLanguage("en"))
-        .add_systems(
-            Startup,
-            (
-                setup,
-                spawn_layout.after(setup),
-                add_layout_localization.after(spawn_layout),
-            ),
-        )
+        .add_systems(Startup, (setup, spawn_layout.after(setup)))
         .add_systems(
             Update,
             (
@@ -54,6 +48,8 @@ struct Typographies {
     user_text: TextStyle,
     folder_text: TextStyle,
     mail_subject_text: TextStyle,
+
+    test_banner: TextStyle,
 }
 
 #[derive(Default)]
@@ -102,6 +98,12 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut ui_assets: 
         font_size: 16.,
         font_smoothing: bevy::text::FontSmoothing::AntiAliased,
     };
+    ui_assets.typographies.test_banner = TextStyle {
+        font: ui_assets.font.clone(),
+        color: Color::WHITE,
+        font_size: 36.,
+        font_smoothing: bevy::text::FontSmoothing::AntiAliased,
+    };
     ui_assets.images.logo = asset_server.load("images/logo.png");
     ui_assets.images.avatars.bear = asset_server.load("images/avatars/bear.png");
     ui_assets.images.icons.inbox = asset_server.load("images/icons/inbox.png");
@@ -115,32 +117,8 @@ struct LocalizationDatabase(HashMap<(&'static str, &'static str), &'static str>)
 #[derive(Resource)]
 struct CurrentLanguage(&'static str);
 
-#[derive(Resource)]
-enum CurrentDirection {
-    Ltr,
-    Rtl,
-}
-
 #[derive(Component)]
 struct LocalizedText(&'static str);
-
-#[derive(Component)]
-enum LocalizedFlexRowDirection {
-    Forward,
-    Backward,
-}
-
-#[derive(Component)]
-enum LocalizedAlignItems {
-    Forward,
-    Backward,
-}
-
-#[derive(Component)]
-enum LocalizedJustifyText {
-    Start,
-    End,
-}
 
 #[derive(Component)]
 struct LocalizedImageFlip;
@@ -152,24 +130,11 @@ fn change_language_system(
     current_language: Res<CurrentLanguage>,
     localization_database: Res<LocalizationDatabase>,
     mut text_query: Query<
-        (
-            Option<&LocalizedText>,
-            Option<&mut Text>,
-            Option<&mut TextSpan>,
-        ),
-        (
-            Or<(With<LocalizedText>, With<LocalizedJustifyText>)>,
-            Or<(With<Text>, With<TextSpan>)>,
-        ),
+        (&LocalizedText, Option<&mut Text>, Option<&mut TextSpan>),
+        (Or<(With<Text>, With<TextSpan>)>,),
     >,
     mut image_query: Query<&mut UiImage, With<LocalizedImageFlip>>,
     mut direction_query: Query<&mut Style>,
-    // mut text_layout_query: Query<(&mut TextLayout, &LocalizedJustifyText)>,
-    // mut style_query: Query<(
-    //     Option<&LocalizedFlexRowDirection>,
-    //     Option<&LocalizedAlignItems>,
-    //     &mut Style,
-    // )>,
 ) {
     let is_left_to_right = match current_language.0 {
         "ar" => false,
@@ -178,14 +143,12 @@ fn change_language_system(
     };
 
     for (localized_text, text, text_span) in &mut text_query {
-        if let Some(localized_text) = localized_text {
-            if let Some(new_text) = localization_database
-                .0
-                .get(&(current_language.0, localized_text.0))
-            {
-                text.map(|mut t| t.0 = new_text.to_string());
-                text_span.map(|mut t| t.0 = new_text.to_string());
-            }
+        if let Some(new_text) = localization_database
+            .0
+            .get(&(current_language.0, localized_text.0))
+        {
+            text.map(|mut t| t.0 = new_text.to_string());
+            text_span.map(|mut t| t.0 = new_text.to_string());
         }
     }
 
@@ -200,65 +163,6 @@ fn change_language_system(
             Direction::Rtl
         };
     }
-
-    // for (mut text_layout, localized_justify_text) in &mut text_layout_query {
-    //     text_layout.justify = match localized_justify_text {
-    //         LocalizedJustifyText::Start => {
-    //             if is_left_to_right {
-    //                 JustifyText::Left
-    //             } else {
-    //                 JustifyText::Right
-    //             }
-    //         }
-    //         LocalizedJustifyText::End => {
-    //             if !is_left_to_right {
-    //                 JustifyText::Left
-    //             } else {
-    //                 JustifyText::Right
-    //             }
-    //         }
-    //     }
-    // }
-
-    // for (localized_flex_row_direction, localized_align_items, mut style) in &mut style_query {
-    //     if let Some(localized_flex_row_direction) = localized_flex_row_direction {
-    //         style.flex_direction = match localized_flex_row_direction {
-    //             LocalizedFlexRowDirection::Forward => {
-    //                 if is_left_to_right {
-    //                     FlexDirection::Row
-    //                 } else {
-    //                     FlexDirection::RowReverse
-    //                 }
-    //             }
-    //             LocalizedFlexRowDirection::Backward => {
-    //                 if !is_left_to_right {
-    //                     FlexDirection::Row
-    //                 } else {
-    //                     FlexDirection::RowReverse
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     if let Some(localized_align_items) = localized_align_items {
-    //         style.align_items = match localized_align_items {
-    //             LocalizedAlignItems::Forward => {
-    //                 if is_left_to_right {
-    //                     AlignItems::Start
-    //                 } else {
-    //                     AlignItems::End
-    //                 }
-    //             }
-    //             LocalizedAlignItems::Backward => {
-    //                 if !is_left_to_right {
-    //                     AlignItems::Start
-    //                 } else {
-    //                     AlignItems::End
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 fn switch_language_button_system(
@@ -300,48 +204,7 @@ fn spawn_layout(mut commands: Commands, ui_assets: Res<UiAssets>) {
             ..default()
         })
         .with_children(|builder| {
-            ui::container(builder, &ui_assets);
+            //mail_ui::container(builder, &ui_assets);
+            test_ui::container(builder, &ui_assets);
         });
-}
-
-fn add_layout_localization(
-    mut commands: Commands,
-    style_query: Query<(Entity, &Style)>,
-    text_layout_query: Query<(Entity, &TextLayout)>,
-) {
-    for (entity, style) in &style_query {
-        match (style.display, style.flex_direction, style.align_items) {
-            (Display::Flex, FlexDirection::Row, _) => {
-                commands
-                    .entity(entity)
-                    .insert(LocalizedFlexRowDirection::Forward);
-            }
-            (Display::Flex, FlexDirection::RowReverse, _) => {
-                commands
-                    .entity(entity)
-                    .insert(LocalizedFlexRowDirection::Backward);
-            }
-            (Display::Flex, _, AlignItems::Start) => {
-                commands.entity(entity).insert(LocalizedAlignItems::Forward);
-            }
-            (Display::Flex, _, AlignItems::End) => {
-                commands
-                    .entity(entity)
-                    .insert(LocalizedAlignItems::Backward);
-            }
-            _ => (),
-        }
-    }
-
-    for (entity, text_layout) in &text_layout_query {
-        match text_layout.justify {
-            JustifyText::Left => {
-                commands.entity(entity).insert(LocalizedJustifyText::Start);
-            }
-            JustifyText::Right => {
-                commands.entity(entity).insert(LocalizedJustifyText::End);
-            }
-            _ => (),
-        }
-    }
 }
